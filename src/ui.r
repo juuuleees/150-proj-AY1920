@@ -33,7 +33,6 @@ fluidPage(
 				),
 				mainPanel(
 					tableOutput("file_contents")
-					# print("hi")
 				)
 			)
 		),
