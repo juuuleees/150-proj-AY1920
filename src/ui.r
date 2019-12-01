@@ -15,15 +15,10 @@ fluidPage(
 				sidebarPanel(
 					checkboxInput('header', "Enable headers", TRUE),
 					textInput(
-						"pr_order",
+						"pr_x_value",
 						"Order value",
 						"",
 						placeholder = "x = ?"
-					),
-					textInput(
-						"pr_x_value",
-						"Value of x",
-						""
 					),
 					actionButton(
 						"pr_get_equation",
@@ -64,9 +59,30 @@ fluidPage(
 			)	
 		),
 		tabPanel(
-			title = "Simplex"
-			# this is either more complicated than I originally thought
-			# or I'm overthinking it. Come back to this later.
+			title = "Simplex",
+			sidebarLayout(
+				sidebarPanel(
+					actionButton(
+						"smplx_add_text_in",
+						"Add Input"
+					),
+					actionButton(
+						"smplx_rmv_text_in",
+						"Remove Input"
+					),
+					actionButton(
+						"smplx_initial_iteration",
+						"Show Final Result"
+					),
+					actionButton(
+						"smplx_sol_by_iteration",
+						"Show Results by Iteration"
+					)
+				),
+				mainPanel(
+
+				)
+			)
 		)
 	)
 )

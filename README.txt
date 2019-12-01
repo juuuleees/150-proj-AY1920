@@ -11,5 +11,6 @@ References:
 		https://rstudio.github.io/shiny/tutorial/#ui-and-server
 		https://shiny.rstudio.com/reference/shiny/latest/renderTable.html
 		https://bookdown.org/weicheng/shinyTutorial/ui.html
+		https://stackoverflow.com/questions/41233242/add-remove-input-fields-dynamically-by-a-button-in-shiny-and-keep-values
 	Misc.:
 		https://stackoverflow.com/questions/33297959/read-csv-and-assign-values-to-r-variables
