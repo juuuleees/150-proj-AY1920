@@ -196,9 +196,8 @@ RegressionACM <- function(degree, inputs) {
 
     for (j in inputs[[1]]) {
   
-      x_j = sum(x ^ k);
-      y_j = sum((x ^ k) * y);
-
+      x_j = sum(j ^ k);
+      y_j = sum((j ^ k) * k);
 
       LHS_values = c(LHS_values, x_j);
       RHS_values = c(RHS_values, y_j);

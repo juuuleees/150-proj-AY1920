@@ -1,38 +1,42 @@
 library(shiny)
 
 fluidPage(
+	fileInput(
+		"file1",
+		"Choose CSV file",
+		accept = c('text/csv',
+		'text/comma-separated-values, text/plain',
+		'.csv')
+	),
 	tabsetPanel(
 		tabPanel(
 			title = "Polynomial Regression",
 			sidebarLayout(
 				sidebarPanel(
-					fileInput(
-						"file1",
-						"Choose CSV file",
-						accept = c('text/csv',
-						'text/comma-separated-values, text/plain',
-						'.csv')
-					),
-					tags$hr(),
-					checkboxInput('header', "Header", TRUE),
+					checkboxInput('header', "Enable headers", TRUE),
 					textInput(
-						"order",
+						"pr_order",
 						"Order value",
 						"",
 						placeholder = "x = ?"
 					),
 					textInput(
-						"x_value",
+						"pr_x_value",
 						"Value of x",
 						""
 					),
 					actionButton(
-						"pr_solve",
-						"Solve"
+						"pr_get_equation",
+						"Display Equation"
+					),
+					actionButton(
+						"pr_x_estimate",
+						"Estimate X"
 					)
 				),
 				mainPanel(
-					tableOutput("file_contents")
+					h2("Results"),
+					tableOutput("poly_reg_contents")
 				)
 			)
 		),
@@ -40,31 +44,29 @@ fluidPage(
 			title = "Quadratic Spline",
 			sidebarLayout(
 				sidebarPanel(
-					fileInput(
-						"file1",
-						"Choose CSV file",
-						accept = c('text/c', 
-						'text/comma-separated-values, text/plain',
-						'.csv')
-					),
-					tags$hr(),
 					textInput(
-						"x_value",
+						"qs_x_value",
 						"Value of x",
 						""
 					),
 					actionButton(
-						"qs_solve",
-						"Solve"
+						"qs_get_equations",
+						"Show Equations"
+					),
+					actionButton(
+						"qs_x_estimate",
+						"Estimate X"
 					)
 				),
 				mainPanel(
-
+					tableOutput("quad_spline_contents")
 				)
 			)	
 		),
 		tabPanel(
 			title = "Simplex"
+			# this is either more complicated than I originally thought
+			# or I'm overthinking it. Come back to this later.
 		)
 	)
 )
