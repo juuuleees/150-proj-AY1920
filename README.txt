@@ -14,3 +14,4 @@ References:
 		https://stackoverflow.com/questions/41233242/add-remove-input-fields-dynamically-by-a-button-in-shiny-and-keep-values
 	Misc.:
 		https://stackoverflow.com/questions/33297959/read-csv-and-assign-values-to-r-variables
+		https://stackoverflow.com/questions/41428626/r-shiny-read-a-table-from-file-and-use-it

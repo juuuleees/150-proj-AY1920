@@ -5,42 +5,80 @@ shinyServer(function(input, output) {
 	# outputs have to be in different variables so you can see the 
 	# original data in each tab's mainPanel
 
-	# main functions for the solvers
-	polynomial_regression <- function(data, a) {
-		
-	}
+	# General functions
+	table_data <- reactive({
 
-	quadratic_spline <- function() {}
+		in_file <- input$user_file
+		if (is.null(in_file)) { return(NULL) }
 
-	simplex_solver <- function() {}
-
-	# Functions for polynomail regression
-	pr_get_table_data <- renderTable({
-
-		inFile <- input$file1
-		if (is.null(inFile)) { return(NULL) }
-
-		table_data <- read.csv(inFile$datapath, header = FALSE)
-		
-		order_x = pr_get_x()
-		polynomial_regression(table_data, order_x)	
+		table_data <- read.csv(in_file$datapath, header = FALSE)
+		return(table_data)
 
 	})
 
-	pr_get_x <- renderText({input$pr_x_value})
+	get_x_in <- renderText({input$pr_x_value})
 
-	pr_order <- observeEvent(input$pr_x_estimate, {
-		print("solb")
+	# Functions for polynomial regression
+	pr_eqn <- reactiveValues(data = NULL)
+	pr_x_estimate <- reactiveValues(data = NULL)
+
+	observeEvent(input$pr_get_equation, {
+		x_value = get_x_in()
+		in_data = table_data()
+
+		pr_eqn$data <- "<pr_eqn>"
+
 	})
+
+	observeEvent(input$pr_x_estimate, {
+		usable_pr_eqn = pr_eqn$data
+
+		pr_x_estimate$data <- "<pr_x_estimate>"
+	})
+
+	output$final_pr_eqn <- renderText({
+		if (is.null(pr_eqn$data)) {
+			return()
+		} else { pr_eqn$data }
+	})
+
+	output$final_pr_estimated_x <- renderText({
+		if (is.null(pr_x_estimate$data)) {
+			return()
+		} else { pr_x_estimate$data }
+	})
+
+
 
 	# Functions for quadratic spline
-	output$quad_spline_contents <- renderTable({
 
-		inFile <- input$file1
-		if (is.null(inFile)) { return(NULL) }
+	qs_eqn <- reactiveValues(data = NULL)
+	qs_x_estimate <- reactiveValues(data = NULL)
 
-		table_data <- read.csv(inFile$datapath, header = input$header)
+	observeEvent(input$qs_get_equation, {
+		x_value = get_x_in()
+		in_data = table_data()
 
+		qs_eqn$data <- "<qs_eqn>"
+
+	})
+
+	observeEvent(input$qs_x_estimate, {
+		usable_qs_eqn = qs_eqn$data
+		
+		qs_x_estimate$data <- "<qs_x_estimate>"
+	})
+
+	output$final_qs_eqn <- renderText({
+		if (is.null(qs_eqn$data)) {
+			return()
+		} else { qs_eqn$data }
+	})
+
+	output$final_qs_estimated_x <- renderText({
+		if (is.null(qs_x_estimate$data)) {
+			return()
+		} else { qs_x_estimate$data }
 	})
 
 	# Functions for simplex

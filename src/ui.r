@@ -2,7 +2,7 @@ library(shiny)
 
 fluidPage(
 	fileInput(
-		"file1",
+		"user_file",
 		"Choose CSV file",
 		accept = c('text/csv',
 		'text/comma-separated-values, text/plain',
@@ -13,13 +13,13 @@ fluidPage(
 			title = "Polynomial Regression",
 			sidebarLayout(
 				sidebarPanel(
-					checkboxInput('header', "Enable headers", TRUE),
 					textInput(
 						"pr_x_value",
-						"Order value",
+						"Input x value:",
 						"",
 						placeholder = "x = ?"
 					),
+					# separate functions for both i guess?
 					actionButton(
 						"pr_get_equation",
 						"Display Equation"
@@ -31,7 +31,10 @@ fluidPage(
 				),
 				mainPanel(
 					h2("Results"),
-					tableOutput("poly_reg_contents")
+					hr(),
+					textOutput("final_pr_eqn"),
+					textOutput("final_pr_estimated_x")
+					# tableOutput("poly_reg_contents")
 				)
 			)
 		),
@@ -41,12 +44,13 @@ fluidPage(
 				sidebarPanel(
 					textInput(
 						"qs_x_value",
-						"Value of x",
-						""
+						"Input x value:",
+						"",
+						placeholder = "x = ?"
 					),
 					actionButton(
-						"qs_get_equations",
-						"Show Equations"
+						"qs_get_equation",
+						"Display Equation"
 					),
 					actionButton(
 						"qs_x_estimate",
@@ -54,7 +58,10 @@ fluidPage(
 					)
 				),
 				mainPanel(
-					tableOutput("quad_spline_contents")
+					h2("Results"),
+					hr(),
+					textOutput("final_qs_eqn"),
+					textOutput("final_qs_estimated_x")
 				)
 			)	
 		),
