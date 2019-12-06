@@ -12,6 +12,10 @@ References:
 		https://shiny.rstudio.com/reference/shiny/latest/renderTable.html
 		https://bookdown.org/weicheng/shinyTutorial/ui.html
 		https://stackoverflow.com/questions/41233242/add-remove-input-fields-dynamically-by-a-button-in-shiny-and-keep-values
+		https://shiny.rstudio.com/articles/action-buttons.html
+		https://swcarpentry.github.io/
 	Misc.:
 		https://stackoverflow.com/questions/33297959/read-csv-and-assign-values-to-r-variables
 		https://stackoverflow.com/questions/41428626/r-shiny-read-a-table-from-file-and-use-it
+		r-novice-inflammation/11-supp-read-write-csv/
+		https://discuss.analyticsvidhya.com/t/how-to-remove-value-from-a-vector-in-r/2975
