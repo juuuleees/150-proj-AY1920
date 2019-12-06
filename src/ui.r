@@ -14,6 +14,12 @@ fluidPage(
 			sidebarLayout(
 				sidebarPanel(
 					textInput(
+						"pr_func_degree",
+						"Input value for function degree:",
+						"",
+						placeholder = "degree = ?"
+					),
+					textInput(
 						"pr_x_value",
 						"Input x value:",
 						"",
@@ -30,10 +36,10 @@ fluidPage(
 					)
 				),
 				mainPanel(
-					h2("Results"),
+					h3("Results"),
 					hr(),
-					textOutput("final_pr_eqn"),
-					textOutput("final_pr_estimated_x")
+					h4(textOutput("final_pr_eqn")),
+					h4(textOutput("final_pr_estimated_x"))
 					# tableOutput("poly_reg_contents")
 				)
 			)
