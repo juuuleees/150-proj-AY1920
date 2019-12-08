@@ -416,6 +416,7 @@ shinyServer(function(input, output) {
 
 	}
 
+	# improved code from Ex03
 	quad_spline_acm <- function(data) {
 
 		cond1 = qs_condition1(data)

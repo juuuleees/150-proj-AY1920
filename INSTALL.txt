@@ -1,0 +1,38 @@
+Program Requirements
+====================
+
+(( R ))
+How to install (Ubuntu 18.04):
+	1. Add the relevant GPG key
+		sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
+
+	2. Add the repository
+		sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
+
+	3. Run update
+		sudo apt-get update
+
+	4. Install R
+		sudo apt-get install r-base
+
+Alternatively:
+	sudo apt-get update
+	sudo apt -y install r-base
+
+
+(( RStudio, if you want an easier time installing packages ))
+How to install (Ubuntu 18.04 terminal): 
+	1. If you don't have gdebi for installing *.deb packages, install gdebi
+		sudo apt install gdebi-core
+
+	2. Download RStudio from their downloads page
+
+	3. Go to whichever folder you saved the package in and install with gdebi
+		sudo gdebi <filename here>.deb
+
+(( rshiny ))
+How to install (Ubuntu 18.04 terminal if you wanna feel like a badass):
+	sudo su - -c "R -e "install.packages('shiny', repos='http://cran.rstudio.com/')""
+
+How to install (RStudio):
+	install.packages("shiny")
