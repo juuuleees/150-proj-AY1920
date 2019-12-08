@@ -40,7 +40,6 @@ fluidPage(
 					hr(),
 					h4(textOutput("final_pr_eqn")),
 					h4(textOutput("final_pr_estimated_x"))
-					# tableOutput("poly_reg_contents")
 				)
 			)
 		),
@@ -64,10 +63,10 @@ fluidPage(
 					)
 				),
 				mainPanel(
-					h2("Results"),
+					h2("Equations:"),
+					h4(htmlOutput("final_qs_eqn")),
 					hr(),
-					textOutput("final_qs_eqn"),
-					textOutput("final_qs_estimated_x")
+					h4(htmlOutput("final_qs_estimated_x"))
 				)
 			)	
 		),
@@ -75,22 +74,7 @@ fluidPage(
 			title = "Simplex",
 			sidebarLayout(
 				sidebarPanel(
-					actionButton(
-						"smplx_add_text_in",
-						"Add Input"
-					),
-					actionButton(
-						"smplx_rmv_text_in",
-						"Remove Input"
-					),
-					actionButton(
-						"smplx_initial_iteration",
-						"Show Final Result"
-					),
-					actionButton(
-						"smplx_sol_by_iteration",
-						"Show Results by Iteration"
-					)
+					
 				),
 				mainPanel(
 

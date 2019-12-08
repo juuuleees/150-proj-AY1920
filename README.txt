@@ -14,6 +14,7 @@ References:
 		https://stackoverflow.com/questions/41233242/add-remove-input-fields-dynamically-by-a-button-in-shiny-and-keep-values
 		https://shiny.rstudio.com/articles/action-buttons.html
 		https://swcarpentry.github.io/
+		https://stackoverflow.com/questions/23233497/outputting-multiple-lines-of-text-with-rendertext-in-r-shiny
 	Misc.:
 		https://stackoverflow.com/questions/33297959/read-csv-and-assign-values-to-r-variables
 		https://stackoverflow.com/questions/41428626/r-shiny-read-a-table-from-file-and-use-it
