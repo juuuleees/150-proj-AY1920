@@ -23,41 +23,66 @@ shinyServer(function(input, output) {
 
 	gauss_jordan <- function(given_acm) {
 
+		print("Given acm:")
+		print(given_acm)
+
 		rows = nrow(given_acm)
 		temp_acm = given_acm
 
 		i = 1
 		j = 1
+		print("Solving...")
 		repeat {
 
 			# put the largest element in the column on the main diagonal
 			sorted_col = sort(temp_acm[,i], decreasing = TRUE)
+			print("Sorting the column...")
+			print(sorted_col)
 
 			if (!isTRUE(all.equal(temp_acm[,i], sorted_col))) {
 				if (i != 1) {
 					
 					if (i == (rows-1)) {
+
+						print(paste("[i,rows,(rows-1)]:", i, rows, (rows-1)))
 			
 						sub_acm = temp_acm[i:rows,]
 						sub_acm = sub_acm[order(abs(sub_acm[,i]), decreasing = TRUE),]
 						temp_acm[i:rows,] = sub_acm
+
+
+						print("Current acm: ")
+						print(temp_acm)
 			
 					} else if (i < rows) {
+
+						print(paste("[i,rows]:", i, rows))
 
 						sub_acm = temp_acm[(i+1):rows,]
 						sub_acm = sub_acm[order(sub_acm[,i], decreasing = TRUE),]
 						temp_acm[(i+1):rows,] = sub_acm
+
+
+						print("Current acm: ")
+						print(temp_acm)
 			
 					}
 
 				} else {
 					temp_acm = temp_acm[order(temp_acm[i:rows], decreasing = TRUE),]
+
+					print("Current acm: ")
+					print(temp_acm)
 				}
+
 			}
 
-
+			print("bug here")
+			print(paste("i: ", i))
 			# divide the row by the value in the main diagonal
-			temp_acm[i,] = temp_acm[i,] / temp_acm[i,i]
+			if (temp_acm[i,i] != 0) {
+				temp_acm[i,] = temp_acm[i,] / temp_acm[i,i]
+			}
 
 			repeat {
 			
@@ -71,6 +96,8 @@ shinyServer(function(input, output) {
 			}
 
 			j = 1
+
+			# if (i == 5) { break }
 			if (i == rows) { break }
 			i = i + 1
 
@@ -525,6 +552,8 @@ shinyServer(function(input, output) {
 
 	qs_final_eqns <- function(solution_set) {
 
+		# print(solution_set)
+
 		final_sol_set = c(0, solution_set)
 		split_sol_set = vector()
 
@@ -622,7 +651,6 @@ shinyServer(function(input, output) {
 			qs_results = qs_final_eqns(sol_set)
 
 			output_vec = qs_results$final_strs
-			# print(output_vec)
 			qs_eqn$data <- output_vec
 		}
 
@@ -657,38 +685,56 @@ shinyServer(function(input, output) {
 	}
 
 	observeEvent(input$qs_x_estimate, {
-		x_value = qs_get_x_in()
-		in_data = table_data()
 
+		in_data = table_data()
+		x_value = qs_get_x_in()
 		x_value = as.integer(x_value)
 
-		if (length(in_data$V1) <= 2) {
-			output_text = "Not enough data points(?)"
-			qs_x_estimate$data <- output_text
-		} else if (x_value > (length(in_data$V1) - 1) || x_value <= 0) {
-			print(x_value)
-			output_text = "X value too small!"
-			qs_x_estimate$data <- output_text
-		} 
+		if (is.na(x_value)) {
+			qs_x_estimate$data <- "No input?"
+		} else {
 
-		qs_acm = quad_spline_acm(in_data)
-		sol_set = gauss_jordan(qs_acm)
-		qs_results = qs_final_eqns(sol_set)
+			if (length(in_data$V1) <= 2) {
+				output_text = "Not enough data points(?)"
+				qs_x_estimate$data <- output_text
+			} else if (x_value > (length(in_data$V1) - 1) || x_value <= 0) {
+				print(x_value)
+				output_text = "X value too small!"
+				qs_x_estimate$data <- output_text
+			}
+	
+			qs_acm = quad_spline_acm(in_data)
+			sol_set = gauss_jordan(qs_acm)
+			qs_results = qs_final_eqns(sol_set)
+	
+			output_vec = qs_results$final_parsed
+			estimated_x = qs_pick_interval(x_value, in_data, output_vec)
+	
+			str_components = c("x =", x_value, estimated_x)
+	
+			qs_x_estimate$data <- str_components
 
-		output_vec = qs_results$final_parsed
-		estimated_x = qs_pick_interval(x_value, in_data, output_vec)
-
-		str_components = c("x =", x_value, estimated_x)
-
-		qs_x_estimate$data <- str_components
+		}
 
 	})
 
 	output$final_qs_eqn <- renderUI({
 		if (is.null(qs_eqn$data)) {
 			return()
-		} else { 
-			HTML(paste(qs_eqn$data[1], qs_eqn$data[2], qs_eqn$data[3], sep = "<br/>"))
+		} else {
+
+			final_eqn_output = "" 
+			i = 1
+			repeat {
+				final_eqn_output = paste(final_eqn_output, qs_eqn$data[i], sep = "<br/>")
+		
+				i = i + 1
+				if (i > length(qs_eqn$data)) { break }
+
+			}
+
+			HTML(final_eqn_output)
+
 		}
 	})
 
@@ -704,8 +750,284 @@ shinyServer(function(input, output) {
 	})
 
 	# Functions for simplex
+	# time of awat: 0537H
+	init_tab <- reactiveValues(data = NULL)
+	iterated_tab <- reactiveValues(data = NULL)
+	iterations <- reactiveValues(data = 0)
+	last_iteration <- reactiveValues(data = FALSE)
 
-	# i tried but i dieded
+	make_tableau <- function(data) {
+		# print(data)
+		# constraints
+		z_vec = vector()
+		supply1 = vector()
+		supply2 = vector()
+		supply3 = vector()
+		demand1 = vector()
+		demand2 = vector()
+		demand3 = vector()
+		demand4 = vector()
+		demand5 = vector()
+
+		print(data)
+
+		# going to paste stuff into this
+		b = matrix(0, nrow = 3, ncol = 10)
+		e = matrix(0, nrow = 5, ncol = 12)
+
+		# get Z coefficients
+		i = 1
+		j = 1
+		repeat {
+
+			repeat {
+
+				z_vec = c(z_vec, data[[j]][i])
+	
+
+				i = i + 1
+				if (i == length(data[[j]])) { break }
+	
+			}
+
+			i = 1
+			j = j + 1
+			if (j == length(data)) { break }
+
+		}
+		z_vec = c(z_vec, 1)
+
+		# get supply coefficients
+		i = 1
+		repeat {
+			supply1 = c(supply1, data$V1[i])
+
+			i = i + 1
+			if (i == length(data$V1)) { break }
+
+		}
+		supply1 = c(supply1, integer(10), data$V1[6])
+
+		i = 1
+		repeat {
+			supply2 = c(supply2, data$V2[i])
+
+			i = i + 1
+			if (i == length(data$V2)) { break }
+
+		}
+		supply2 = c(integer(5), supply2, integer(5), data$V2[6])
+
+		i = 1
+		repeat {
+			supply3 = c(supply3, data$V3[i])
+
+			i = i + 1
+			if (i == length(data$V3)) { break }
+
+		}
+		supply3 = c(integer(10), supply3, data$V3[6])
+
+		# get demand coefficients
+		i = 1
+		repeat {
+
+			demand1 = c(demand1, data[[i]][1])
+
+			if (i == length(data)) { break }
+			i = i + 1
+
+		}
+		demand1 = c(demand1[1],integer(4), demand1[2], 
+					integer(4), demand1[3], integer(4), demand1[4]) * -1
+		i = 1
+		repeat {
+
+			demand2 = c(demand2, data[[i]][2])
+
+			if (i == length(data)) { break }
+			i = i + 1
+
+		}
+		demand2 = c(0,demand2[1],integer(4), demand2[2], 
+					integer(4), demand2[3], integer(3), demand2[4]) * -1
+		i = 1
+		repeat {
+
+			demand3 = c(demand3, data[[i]][3])
+
+			if (i == length(data)) { break }
+			i = i + 1
+
+		}
+		demand3 = c(integer(2),demand3[1],integer(4), demand3[2], 
+					integer(4), demand3[3], integer(2), demand3[4]) * -1
+		i = 1
+		repeat {
+
+			demand4 = c(demand4, data[[i]][4])
+
+			if (i == length(data)) { break }
+			i = i + 1
+
+		}
+		demand4 = c(integer(3),demand4[1],integer(4), demand4[2], 
+					integer(4), demand4[3], integer(1), demand4[4]) * -1
+		i = 1
+		repeat {
+
+			demand5 = c(demand5, data[[i]][5])
+
+			if (i == length(data)) { break }
+			i = i + 1
+
+		}
+		demand5 = c(integer(4),demand5[1],integer(4), demand5[2], 
+					integer(4), demand5[3], demand5[4]) * -1
+
+		# # transpose it bc we minimizing
+		matrix_values = c(supply1, supply2, supply3, demand1, demand2, demand3,
+							demand4, demand5, z_vec)
+		simplex_acm = t(matrix(matrix_values, nrow = 9, ncol = 16, byrow = TRUE))
+		simplex_acm[nrow(simplex_acm),ncol(simplex_acm)] = 0
+		print(simplex_acm)
+
+		# then make a maxiization matrix ugh lordt andaming values
+		slack_vars = diag(16)
+		sols = simplex_acm[,9]
+		non_slack = simplex_acm[1:16, 1:8]
+		final_tableau = cbind(non_slack, slack_vars, sols)
+		return(final_tableau)
+		
+	}
+
+	iterate_gjm <- function(tableau, last_i) {
+
+		if (all(tableau[,nrow(tableau)] > 0)) {
+			last_i <- TRUE
+		}
+		# print(tableau)
+
+		# pick a pivot column
+		last_row = tableau[nrow(tableau),]
+		# print(last_row)
+
+		# pivot_col is a vector if there are similar negative values
+		# e.g. -4 and -4 are the smallest negatives
+		pivot_col = which(abs(last_row) == max(-last_row))
+		pivot_col_index = 0
+		# if pivot_col is a vector get the first element
+		if (length(pivot_col) > 1) {
+			pivot_col_index = pivot_col[1]
+		} else {
+			pivot_col_index = pivot_col
+		}
+		# print(pivot_col_index)
+
+		# get the temp values to pick a pivot row
+		sols = tableau[,15]
+		pivot_col = tableau[,pivot_col_index]
+		temp_values = vector()
+
+		i = 1
+		repeat {
+
+			if (pivot_col[i] != 0) {
+				temp_values = c(temp_values, (sols[i] / pivot_col[i]))
+			}
+
+			if (i == length(pivot_col)) { break }
+			i = i + 1
+
+		}
+
+		print("col")
+		print(pivot_col_index)
+		# same choosing criteria for pivot row index
+		pivot_row = which(abs(temp_values) == max(abs(temp_values)))
+		pivot_row_index = 0
+		if (length(pivot_row) > 1) {
+			pivot_row_index = pivot_row[1]
+		} else {
+			pivot_row_index = pivot_row
+		}
+		print("row")
+		print(pivot_row_index)
+
+		pivot_element = tableau[pivot_row_index, pivot_col_index]
+
+		print("pivot element")
+		print(pivot_element)
+
+		# gauss-jordan!!
+		tableau[pivot_row_index,] = tableau[pivot_row_index,] / pivot_element
+		normalized_row = tableau[pivot_row_index,]
+		# print(normalized_row)
+
+		i = 1
+		repeat {
+
+			pcol_element = tableau[i,pivot_col_index]
+			# print("col element")
+			# print(pcol_element)
+
+			if (pcol_element != 0 && pcol_element != 1) {
+				temp = normalized_row * pcol_element
+				tableau[i,] = tableau[i,] - temp
+			}
+
+			# print(tableau)
+
+			i = i + 1
+			if (i > nrow(tableau)) { break }
+
+		}
+
+
+		return(tableau)
+
+	}
+
+	observeEvent(input$smplx_tableau, {
+		simplex_data = table_data()
+
+		initial_tableau = make_tableau(simplex_data)
+		init_tab$data <- initial_tableau
+	})
+
+	observeEvent(input$smplx_iteration, {
+		
+		if (iterations$data == 0) {
+			iterated_tab$data <- iterate_gjm(init_tab$data, last_iteration$data)
+		} else {
+			iterated_tab$data <- iterate_gjm(iterated_tab$data, last_iteration$data)
+		}
+	
+		if (last_iteration$data == FALSE) {
+			iterations$data = iterations$data + 1
+		}
+
+	})
+
+	output$smplx_init_tableau <- renderTable({init_tab$data})
+	output$smplx_iterated_tab <- renderTable({iterated_tab$data})
+	output$iteration_count <- renderText({
+
+		is_initial_tableau = "(initial tableau)"
+
+		# print(paste("Last iteration na talaga?: ", last_iteration$data))
+		if (is.null(iterations$data)) {
+			return()
+		} else if (iterations$data == 0) {
+			HTML(paste("Iterations: ", iterations$data, is_initial_tableau))
+		} else if (last_iteration$data) {
+			print(last_iteration$data)
+			print(iterations$data)
+			HTML(paste("Iterations: ", iterations$data, "No more negative values in Z row!", sep = "<br/>")) 
+		} else {
+			HTML(paste("Iterations: ", iterations$data))
+		}
+
+	})
 
 })
-

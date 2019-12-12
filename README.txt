@@ -20,6 +20,7 @@ References:
 		https://stackoverflow.com/questions/41428626/r-shiny-read-a-table-from-file-and-use-it
 		r-novice-inflammation/11-supp-read-write-csv/
 		https://discuss.analyticsvidhya.com/t/how-to-remove-value-from-a-vector-in-r/2975
+		https://math.stackexchange.com/questions/2685021/does-zero-considered-as-a-leaving-variable-in-simplex-method
 	Installations:
 		https://www.digitalocean.com/community/tutorials/how-to-install-r-on-ubuntu-18-04
 		https://linuxconfig.org/install-deb-file-on-ubuntu-18-04-bionic-beaver-linux

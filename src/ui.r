@@ -74,10 +74,25 @@ fluidPage(
 			title = "Simplex",
 			sidebarLayout(
 				sidebarPanel(
-					
+					actionButton(
+						"smplx_tableau",
+						"Initial Tableau"
+					),
+					actionButton(
+						"smplx_iteration",
+						"Iterate!"
+					),
+					actionButton(
+						"smplx_final_answer",
+						"Show Final Answer"
+					)
 				),
 				mainPanel(
-
+					tableOutput("smplx_init_tableau"),
+					hr(),
+					h3("Iterations"),
+					tableOutput("smplx_iterated_tab"),
+					h4(htmlOutput("iteration_count"))
 				)
 			)
 		)
