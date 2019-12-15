@@ -77,8 +77,6 @@ shinyServer(function(input, output) {
 
 			}
 
-			print("bug here")
-			print(paste("i: ", i))
 			# divide the row by the value in the main diagonal
 			if (temp_acm[i,i] != 0) {
 				temp_acm[i,] = temp_acm[i,] / temp_acm[i,i]
@@ -890,7 +888,7 @@ shinyServer(function(input, output) {
 							demand4, demand5, z_vec)
 		simplex_acm = t(matrix(matrix_values, nrow = 9, ncol = 16, byrow = TRUE))
 		simplex_acm[nrow(simplex_acm),ncol(simplex_acm)] = 0
-		print(simplex_acm)
+		# print(simplex_acm)
 
 		# then make a maxiization matrix ugh lordt andaming values
 		slack_vars = diag(16)
@@ -909,12 +907,15 @@ shinyServer(function(input, output) {
 		# print(tableau)
 
 		# pick a pivot column
-		last_row = tableau[nrow(tableau),]
-		# print(last_row)
+		last_row = tableau[nrow(tableau),1:24]
+		print("last row: ")
+		print(last_row)
 
 		# pivot_col is a vector if there are similar negative values
 		# e.g. -4 and -4 are the smallest negatives
-		pivot_col = which(abs(last_row) == max(-last_row))
+		pivot_col = which(-last_row == max(-last_row))
+		print("negative value indexes: ")
+		print(pivot_col)
 		pivot_col_index = 0
 		# if pivot_col is a vector get the first element
 		if (length(pivot_col) > 1) {
@@ -925,15 +926,21 @@ shinyServer(function(input, output) {
 		# print(pivot_col_index)
 
 		# get the temp values to pick a pivot row
-		sols = tableau[,15]
+		sols = tableau[,25]
 		pivot_col = tableau[,pivot_col_index]
 		temp_values = vector()
 
+		print("sols: ")
+		print(sols)
+		print("pivot col: ")
+		print(pivot_col)
 		i = 1
 		repeat {
 
 			if (pivot_col[i] != 0) {
 				temp_values = c(temp_values, (sols[i] / pivot_col[i]))
+			} else {
+				temp_values = c(temp_values, 0);
 			}
 
 			if (i == length(pivot_col)) { break }
@@ -941,18 +948,25 @@ shinyServer(function(input, output) {
 
 		}
 
-		print("col")
-		print(pivot_col_index)
+		# print("col")
+		# print(pivot_col_index)
 		# same choosing criteria for pivot row index
-		pivot_row = which(abs(temp_values) == max(abs(temp_values)))
+		# bug here!!!!
+		print("temp values: ")
+		# forgot to catch the instances where there are positive temp values
+		print(temp_values)
+		pivot_row = which(-temp_values == max(-temp_values))
+
+		print("pivot row: ")
+		print(pivot_row)
 		pivot_row_index = 0
 		if (length(pivot_row) > 1) {
 			pivot_row_index = pivot_row[1]
 		} else {
 			pivot_row_index = pivot_row
 		}
-		print("row")
-		print(pivot_row_index)
+		# print("row")
+		print(paste(pivot_row_index, pivot_col_index))
 
 		pivot_element = tableau[pivot_row_index, pivot_col_index]
 
@@ -962,28 +976,24 @@ shinyServer(function(input, output) {
 		# gauss-jordan!!
 		tableau[pivot_row_index,] = tableau[pivot_row_index,] / pivot_element
 		normalized_row = tableau[pivot_row_index,]
-		# print(normalized_row)
+		print(normalized_row)
 
 		i = 1
 		repeat {
 
 			pcol_element = tableau[i,pivot_col_index]
-			# print("col element")
-			# print(pcol_element)
 
 			if (pcol_element != 0 && pcol_element != 1) {
 				temp = normalized_row * pcol_element
 				tableau[i,] = tableau[i,] - temp
 			}
 
-			# print(tableau)
-
 			i = i + 1
 			if (i > nrow(tableau)) { break }
 
 		}
 
-
+		print(tableau)
 		return(tableau)
 
 	}
@@ -1000,6 +1010,7 @@ shinyServer(function(input, output) {
 		if (iterations$data == 0) {
 			iterated_tab$data <- iterate_gjm(init_tab$data, last_iteration$data)
 		} else {
+			print("dumadaan ka ba dito u hoe")
 			iterated_tab$data <- iterate_gjm(iterated_tab$data, last_iteration$data)
 		}
 	
