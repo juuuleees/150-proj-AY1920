@@ -901,11 +901,6 @@ shinyServer(function(input, output) {
 
 	iterate_gjm <- function(tableau, last_i) {
 
-		if (all(tableau[,nrow(tableau)] > 0)) {
-			last_i <- TRUE
-		}
-		# print(tableau)
-
 		# pick a pivot column
 		last_row = tableau[nrow(tableau),1:24]
 		print("last row: ")
@@ -913,7 +908,7 @@ shinyServer(function(input, output) {
 
 		# pivot_col is a vector if there are similar negative values
 		# e.g. -4 and -4 are the smallest negatives
-		pivot_col = which(-last_row == max(-last_row))
+		pivot_col = which(last_row < 0)
 		print("negative value indexes: ")
 		print(pivot_col)
 		pivot_col_index = 0
@@ -926,47 +921,34 @@ shinyServer(function(input, output) {
 		# print(pivot_col_index)
 
 		# get the temp values to pick a pivot row
-		sols = tableau[,25]
-		pivot_col = tableau[,pivot_col_index]
-		temp_values = vector()
-
+		sols = tableau[,ncol(tableau)]
+		selected_col = tableau[,pivot_col_index]
 		print("sols: ")
 		print(sols)
 		print("pivot col: ")
-		print(pivot_col)
+		print(selected_col)
+
+		temp_values = vector()
 		i = 1
 		repeat {
 
-			if (pivot_col[i] != 0) {
-				temp_values = c(temp_values, (sols[i] / pivot_col[i]))
+			if (selected_col[i] != 0) {
+				temp_values = c(temp_values, (sols[i] / selected_col[i]))
 			} else {
-				temp_values = c(temp_values, 0);
+				temp_values = c(temp_values, NA);
 			}
 
-			if (i == length(pivot_col)) { break }
+			if (i == length(selected_col)) { break }
 			i = i + 1
 
 		}
 
-		# print("col")
-		# print(pivot_col_index)
-		# same choosing criteria for pivot row index
-		# bug here!!!!
 		print("temp values: ")
-		# forgot to catch the instances where there are positive temp values
 		print(temp_values)
-		pivot_row = which(-temp_values == max(-temp_values))
 
-		print("pivot row: ")
-		print(pivot_row)
-		pivot_row_index = 0
-		if (length(pivot_row) > 1) {
-			pivot_row_index = pivot_row[1]
-		} else {
-			pivot_row_index = pivot_row
-		}
-		# print("row")
-		print(paste(pivot_row_index, pivot_col_index))
+		min_tr = min(temp_values[temp_values >= 0], na.rm = TRUE)
+		print(paste("min tr: ", min_tr))
+		pivot_row_index = match(min_tr, temp_values)
 
 		pivot_element = tableau[pivot_row_index, pivot_col_index]
 
