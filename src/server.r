@@ -767,7 +767,8 @@ shinyServer(function(input, output) {
 		demand4 = vector()
 		demand5 = vector()
 
-		print(data)
+		# going to follow a template for the minimization initial tableau
+		# because the only things that change are the values of the last row and column
 
 		# going to paste stuff into this
 		b = matrix(0, nrow = 3, ncol = 10)
@@ -798,90 +799,105 @@ shinyServer(function(input, output) {
 		# get supply coefficients
 		i = 1
 		repeat {
-			supply1 = c(supply1, data$V1[i])
+			supply1 = c(supply1, 1)
 
 			i = i + 1
 			if (i == length(data$V1)) { break }
 
 		}
-		supply1 = c(supply1, integer(10), data$V1[6])
+		supply1 = c(supply1, integer(10), -data$V1[6])
 
 		i = 1
 		repeat {
-			supply2 = c(supply2, data$V2[i])
+			supply2 = c(supply2, 1)
 
 			i = i + 1
 			if (i == length(data$V2)) { break }
 
 		}
-		supply2 = c(integer(5), supply2, integer(5), data$V2[6])
+		supply2 = c(integer(5), supply2, integer(5), -data$V2[6])
 
 		i = 1
 		repeat {
-			supply3 = c(supply3, data$V3[i])
+			supply3 = c(supply3, 1)
 
 			i = i + 1
 			if (i == length(data$V3)) { break }
 
 		}
-		supply3 = c(integer(10), supply3, data$V3[6])
+		supply3 = c(integer(10), supply3, -data$V3[6])
 
 		# get demand coefficients
 		i = 1
 		repeat {
 
-			demand1 = c(demand1, data[[i]][1])
-
-			if (i == length(data)) { break }
+			if (i == length(data)) { 
+				demand1 = c(demand1, data[[i]][1])
+				break 
+			} else {
+				demand1 = c(demand1, -1)
+			}
 			i = i + 1
 
 		}
 		demand1 = c(demand1[1],integer(4), demand1[2], 
-					integer(4), demand1[3], integer(4), demand1[4]) * -1
+					integer(4), demand1[3], integer(4), -demand1[4]) * -1
 		i = 1
 		repeat {
 
-			demand2 = c(demand2, data[[i]][2])
-
-			if (i == length(data)) { break }
+			if (i == length(data)) { 
+				demand2 = c(demand2, data[[i]][2])
+				break 
+			} else {
+				demand2 = c(demand2, -1)
+			}
 			i = i + 1
 
 		}
 		demand2 = c(0,demand2[1],integer(4), demand2[2], 
-					integer(4), demand2[3], integer(3), demand2[4]) * -1
+					integer(4), demand2[3], integer(3), -demand2[4]) * -1
 		i = 1
 		repeat {
 
-			demand3 = c(demand3, data[[i]][3])
-
-			if (i == length(data)) { break }
+			if (i == length(data)) { 
+				demand3 = c(demand3, data[[i]][1])
+				break 
+			} else {
+				demand3 = c(demand3, -1)
+			}
 			i = i + 1
 
 		}
 		demand3 = c(integer(2),demand3[1],integer(4), demand3[2], 
-					integer(4), demand3[3], integer(2), demand3[4]) * -1
+					integer(4), demand3[3], integer(2), -demand3[4]) * -1
 		i = 1
 		repeat {
 
-			demand4 = c(demand4, data[[i]][4])
-
-			if (i == length(data)) { break }
+			if (i == length(data)) { 
+				demand4 = c(demand4, data[[i]][1])
+				break 
+			} else {
+				demand4 = c(demand4, -1)
+			}
 			i = i + 1
 
 		}
 		demand4 = c(integer(3),demand4[1],integer(4), demand4[2], 
-					integer(4), demand4[3], integer(1), demand4[4]) * -1
+					integer(4), demand4[3], integer(1), -demand4[4]) * -1
 		i = 1
 		repeat {
 
-			demand5 = c(demand5, data[[i]][5])
-
-			if (i == length(data)) { break }
+			if (i == length(data)) { 
+				demand5 = c(demand5, data[[i]][1])
+				break 
+			} else {
+				demand5 = c(demand5, -1)
+			}
 			i = i + 1
 
 		}
 		demand5 = c(integer(4),demand5[1],integer(4), demand5[2], 
-					integer(4), demand5[3], demand5[4]) * -1
+					integer(4), demand5[3], -demand5[4]) * -1
 
 		# # transpose it bc we minimizing
 		matrix_values = c(supply1, supply2, supply3, demand1, demand2, demand3,
@@ -890,110 +906,108 @@ shinyServer(function(input, output) {
 		simplex_acm[nrow(simplex_acm),ncol(simplex_acm)] = 0
 		# print(simplex_acm)
 
-		# then make a maxiization matrix ugh lordt andaming values
+		# then make a maximization matrix ugh lordt andaming values
 		slack_vars = diag(16)
 		sols = simplex_acm[,9]
 		non_slack = simplex_acm[1:16, 1:8]
-		final_tableau = cbind(non_slack, slack_vars, sols)
+		final_tableau = matrix(c(non_slack, slack_vars, sols),
+								 nrow = 16,
+								 ncol = 25,
+								 byrow = FALSE, 
+								 dimnames = list(c(paste("S",1:15,sep=""),"Z"), 
+								 				 c(paste("X",1:8,sep=""),paste("S",1:15,sep=""),"Z","Solution")))
+
+		print(final_tableau)
 		return(final_tableau)
 		
 	}
 
 	iterate_gjm <- function(tableau, last_i) {
 
-		if (all(tableau[,nrow(tableau)] > 0)) {
-			last_i <- TRUE
-		}
 		# print(tableau)
 
 		# pick a pivot column
 		last_row = tableau[nrow(tableau),1:24]
-		print("last row: ")
-		print(last_row)
 
 		# pivot_col is a vector if there are similar negative values
 		# e.g. -4 and -4 are the smallest negatives
-		pivot_col = which(-last_row == max(-last_row))
+		pivot_col = which(last_row < 0)
 		print("negative value indexes: ")
 		print(pivot_col)
 		pivot_col_index = 0
-		# if pivot_col is a vector get the first element
+
+		# Bland's Rule pt. 1: Take the first negative you see in the last row
 		if (length(pivot_col) > 1) {
 			pivot_col_index = pivot_col[1]
 		} else {
 			pivot_col_index = pivot_col
 		}
-		# print(pivot_col_index)
 
-		# get the temp values to pick a pivot row
-		sols = tableau[,25]
-		pivot_col = tableau[,pivot_col_index]
-		temp_values = vector()
+		print("pivot col: ")
+		print(pivot_col_index)
+
+		sols = tableau[,ncol(tableau)]
+		selected_col = tableau[,pivot_col_index]
 
 		print("sols: ")
 		print(sols)
-		print("pivot col: ")
-		print(pivot_col)
+		print("selected col:")
+		print(selected_col)
+
+		test_ratios = vector()
 		i = 1
 		repeat {
 
-			if (pivot_col[i] != 0) {
-				temp_values = c(temp_values, (sols[i] / pivot_col[i]))
+			if (selected_col[i] == 0) {
+				test_ratios = c(test_ratios, 0)
 			} else {
-				temp_values = c(temp_values, 0);
+				test_ratios = c(test_ratios, (sols[i] / selected_col[i]))
 			}
 
-			if (i == length(pivot_col)) { break }
+			if (i == length(sols)) { break }
 			i = i + 1
 
 		}
 
-		# print("col")
-		# print(pivot_col_index)
-		# same choosing criteria for pivot row index
-		# bug here!!!!
-		print("temp values: ")
-		# forgot to catch the instances where there are positive temp values
-		print(temp_values)
-		pivot_row = which(-temp_values == max(-temp_values))
+		print("test ratios: ")
+		print(test_ratios)
 
-		print("pivot row: ")
-		print(pivot_row)
-		pivot_row_index = 0
-		if (length(pivot_row) > 1) {
-			pivot_row_index = pivot_row[1]
-		} else {
-			pivot_row_index = pivot_row
-		}
-		# print("row")
-		print(paste(pivot_row_index, pivot_col_index))
+		# Bland's Rule pt. 2: If there's more than one of any test ratio, pick the first one in the ordering
+		min_tr = min(test_ratios[test_ratios > 0])
+		print(paste("min. test ratio:",min_tr))
+		pivot_row_index = match(min_tr, test_ratios)
 
+		print("row index: ")
+		print(pivot_row_index)
+
+		# get the pivot element
 		pivot_element = tableau[pivot_row_index, pivot_col_index]
+		print(paste("pivot element:", pivot_element))
 
-		print("pivot element")
-		print(pivot_element)
-
-		# gauss-jordan!!
 		tableau[pivot_row_index,] = tableau[pivot_row_index,] / pivot_element
 		normalized_row = tableau[pivot_row_index,]
-		print(normalized_row)
 
+		# gauss-jordan!!
 		i = 1
 		repeat {
 
-			pcol_element = tableau[i,pivot_col_index]
-
-			if (pcol_element != 0 && pcol_element != 1) {
-				temp = normalized_row * pcol_element
-				tableau[i,] = tableau[i,] - temp
+			# tableau[i,] - (col. element * pivot_row)
+			if (i != pivot_row_index) {
+				sub_row = selected_col[i] * normalized_row
+				tableau[i,] = tableau[i,] - sub_row
 			}
 
+			if (i == nrow(tableau)) { break }
 			i = i + 1
-			if (i > nrow(tableau)) { break }
 
 		}
 
 		print(tableau)
+
+		if (all(tableau[,nrow(tableau)] > 0)) {
+			last_iteration$data <- TRUE
+		}
+
 		return(tableau)
 
 	}
@@ -1011,6 +1025,7 @@ shinyServer(function(input, output) {
 			iterated_tab$data <- iterate_gjm(init_tab$data, last_iteration$data)
 		} else {
 			print("dumadaan ka ba dito u hoe")
+			print(last_iteration$data)
 			iterated_tab$data <- iterate_gjm(iterated_tab$data, last_iteration$data)
 		}
 	
