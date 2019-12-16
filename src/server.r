@@ -922,7 +922,7 @@ shinyServer(function(input, output) {
 		
 	}
 
-	iterate_gjm <- function(tableau, last_i) {
+	iterate_gjm <- function(tableau) {
 
 		# print(tableau)
 
@@ -975,6 +975,7 @@ shinyServer(function(input, output) {
 		# Bland's Rule pt. 2: If there's more than one of any test ratio, pick the first one in the ordering
 		min_tr = min(test_ratios[test_ratios > 0])
 		print(paste("min. test ratio:",min_tr))
+		# match() returns the index of the first match
 		pivot_row_index = match(min_tr, test_ratios)
 
 		print("row index: ")
@@ -1003,11 +1004,6 @@ shinyServer(function(input, output) {
 		}
 
 		print(tableau)
-
-		if (all(tableau[,nrow(tableau)] > 0)) {
-			last_iteration$data <- TRUE
-		}
-
 		return(tableau)
 
 	}
@@ -1022,11 +1018,13 @@ shinyServer(function(input, output) {
 	observeEvent(input$smplx_iteration, {
 		
 		if (iterations$data == 0) {
-			iterated_tab$data <- iterate_gjm(init_tab$data, last_iteration$data)
+			iterated_tab$data <- iterate_gjm(init_tab$data)
+
 		} else {
 			print("dumadaan ka ba dito u hoe")
 			print(last_iteration$data)
-			iterated_tab$data <- iterate_gjm(iterated_tab$data, last_iteration$data)
+			iterated_tab$data <- iterate_gjm(iterated_tab$data)
+
 		}
 	
 		if (last_iteration$data == FALSE) {
