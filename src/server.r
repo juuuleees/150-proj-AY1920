@@ -936,9 +936,30 @@ shinyServer(function(input, output) {
 		print(pivot_col)
 		pivot_col_index = 0
 
-		# Bland's Rule pt. 1: Take the first negative you see in the last row
+		# take the biggest/lefthand-most negative
 		if (length(pivot_col) > 1) {
+			# i = 1
+			# all_equal = FALSE
+			# # check if all the elements are the same
+			# # if they are, pick the leftmost value, else pick the biggest negative
+			# repeat {
+    
+   #  			if(all(pivot_col == pivot_col[i])) { 
+   #      			all_equal = TRUE
+   #  			}
+			    
+   #  			if (i == length(pivot_col)) { break }
+   #  			i = i + 1
+			  
+			# }
+
+			# if (all_equal == TRUE) {
+			# 	pivot_col_index = pivot_col[1]
+			# } else {
+			# 	pivot_col_index = 
+			# }
 			pivot_col_index = pivot_col[1]
+
 		} else {
 			pivot_col_index = pivot_col
 		}
@@ -959,7 +980,7 @@ shinyServer(function(input, output) {
 		repeat {
 
 			if (selected_col[i] == 0) {
-				test_ratios = c(test_ratios, 0)
+				test_ratios = c(test_ratios, NA)
 			} else {
 				test_ratios = c(test_ratios, (sols[i] / selected_col[i]))
 			}
@@ -973,7 +994,7 @@ shinyServer(function(input, output) {
 		print(test_ratios)
 
 		# Bland's Rule pt. 2: If there's more than one of any test ratio, pick the first one in the ordering
-		min_tr = min(test_ratios[test_ratios > 0])
+		min_tr = min(test_ratios[test_ratios > 0], na.rm = TRUE)
 		print(paste("min. test ratio:",min_tr))
 		# match() returns the index of the first match
 		pivot_row_index = match(min_tr, test_ratios)
