@@ -804,7 +804,7 @@ shinyServer(function(input, output) {
 			if (i == length(data$V1)) { break }
 
 		}
-		supply1 = c(supply1, integer(10), data$V1[6])
+		supply1 = c(supply1, integer(10), -data$V1[6])
 
 		i = 1
 		repeat {
@@ -814,7 +814,7 @@ shinyServer(function(input, output) {
 			if (i == length(data$V2)) { break }
 
 		}
-		supply2 = c(integer(5), supply2, integer(5), data$V2[6])
+		supply2 = c(integer(5), supply2, integer(5), -data$V2[6])
 
 		i = 1
 		repeat {
@@ -824,7 +824,7 @@ shinyServer(function(input, output) {
 			if (i == length(data$V3)) { break }
 
 		}
-		supply3 = c(integer(10), supply3, data$V3[6])
+		supply3 = c(integer(10), supply3, -data$V3[6])
 
 		# get demand coefficients
 		i = 1
@@ -837,7 +837,7 @@ shinyServer(function(input, output) {
 
 		}
 		demand1 = c(demand1[1],integer(4), demand1[2], 
-					integer(4), demand1[3], integer(4), demand1[4]) * -1
+					integer(4), demand1[3], integer(4), -demand1[4]) * -1
 		i = 1
 		repeat {
 
@@ -848,7 +848,7 @@ shinyServer(function(input, output) {
 
 		}
 		demand2 = c(0,demand2[1],integer(4), demand2[2], 
-					integer(4), demand2[3], integer(3), demand2[4]) * -1
+					integer(4), demand2[3], integer(3), -demand2[4]) * -1
 		i = 1
 		repeat {
 
@@ -859,7 +859,7 @@ shinyServer(function(input, output) {
 
 		}
 		demand3 = c(integer(2),demand3[1],integer(4), demand3[2], 
-					integer(4), demand3[3], integer(2), demand3[4]) * -1
+					integer(4), demand3[3], integer(2), -demand3[4]) * -1
 		i = 1
 		repeat {
 
@@ -870,7 +870,7 @@ shinyServer(function(input, output) {
 
 		}
 		demand4 = c(integer(3),demand4[1],integer(4), demand4[2], 
-					integer(4), demand4[3], integer(1), demand4[4]) * -1
+					integer(4), demand4[3], integer(1), -demand4[4]) * -1
 		i = 1
 		repeat {
 
@@ -881,7 +881,7 @@ shinyServer(function(input, output) {
 
 		}
 		demand5 = c(integer(4),demand5[1],integer(4), demand5[2], 
-					integer(4), demand5[3], demand5[4]) * -1
+					integer(4), demand5[3], -demand5[4]) * -1
 
 		# # transpose it bc we minimizing
 		matrix_values = c(supply1, supply2, supply3, demand1, demand2, demand3,
@@ -901,83 +901,110 @@ shinyServer(function(input, output) {
 
 	iterate_gjm <- function(tableau, last_i) {
 
-		# pick a pivot column
-		last_row = tableau[nrow(tableau),1:24]
-		print("last row: ")
-		print(last_row)
+		if (is_final_tableau(tableau, last_i) != TRUE) {
+			
+			# make a temporary test ratio column and attach it to the main matrix
+			# just remove it once the iteration's over
+			test_ratio = integer(nrow(tableau))
+			# print(test_ratio)
+			tableau = cbind(tableau, test_ratio)
 
-		# pivot_col is a vector if there are similar negative values
-		# e.g. -4 and -4 are the smallest negatives
-		pivot_col = which(last_row < 0)
-		print("negative value indexes: ")
-		print(pivot_col)
-		pivot_col_index = 0
-		# if pivot_col is a vector get the first element
-		if (length(pivot_col) > 1) {
-			pivot_col_index = pivot_col[1]
+			# choose a pivot column
+			print(tableau[nrow(tableau),])
+			print(min(as.integer(tableau[nrow(tableau),])))
+			pivot_col_index = match(min(as.integer(tableau[nrow(tableau),])), as.integer(tableau[nrow(tableau),]))
+			print(paste("pivot col: ", pivot_col_index))
+			# print(tableau[,pivot_col_index])
+
+			# pick pivot row
+			# first update test_ratio column
+			i = 1
+			repeat {
+				# possible pivot elements are positive, so no zeroes/negatives
+				if ( tableau[,pivot_col_index][i] > 0 ) {
+					tableau[,ncol(tableau)][i] = as.integer(tableau[,(ncol(tableau)-1)][i]) / as.integer(tableau[,pivot_col_index][i])
+				} else if ( tableau[,pivot_col_index][i] == 0 ) {
+					tableau[,ncol(tableau)][i] = NA
+				} else if ( tableau[,pivot_col_index][i] < 0) {
+					if (i == nrow(tableau)) {
+						# elements will become strings to compensate for this! adjust accordingly!
+						tableau[,ncol(tableau)][i] = "z-element"
+					} else {
+						tableau[,ncol(tableau)][i] = "negative element"
+					}
+				}
+
+				if (i == length(test_ratio)) { break }
+				i = i + 1
+
+			}
+
+			# get the row index of the smallest value in the test ratio column
+			# if there's a tie for smallest value, pick a random one
+			small_indexes = vector()
+			i = 1
+			# this should say FALSE
+			repeat {
+
+				# print(paste(is.na(as.integer(tableau[,ncol(tableau)][i])), tableau[,ncol(tableau)][i]))
+				if ( !is.na(as.integer(tableau[,ncol(tableau)][i])) ) {
+					small_indexes = c(small_indexes, i)
+				}
+
+				if (i == (length(tableau[,ncol(tableau)]) - 1)) { break }
+				i = i + 1
+
+			}
+			print(small_indexes)
+
+			pivot_row_index = sample(small_indexes[1:length(small_indexes)], 1)
+			print(paste("(r,s): ", pivot_row_index, pivot_col_index))
+
+			# pick the pivot element
+			pivot_element = as.integer(tableau[pivot_row_index, pivot_col_index])
+			print(paste("pivot element: ", pivot_element))
+
+			print("pivot row:")
+			print(tableau[pivot_row_index,1:(ncol(tableau) - 1)])
+
+			# normalize the pivot row
+			print(as.integer(as.integer(tableau[pivot_row_index,1:(ncol(tableau) - 1)])))
+			tableau[pivot_row_index,1:(ncol(tableau) - 1)] = as.integer(tableau[pivot_row_index,1:(ncol(tableau) - 1)]) / pivot_element			
+			normalized_row = as.integer(tableau[pivot_row_index,1:(ncol(tableau) - 1)])
+
+			# gauss-jordan the pivot column
+			i = 1
+			repeat {
+	
+				pcol_element = as.integer(tableau[i,pivot_col_index])
+	
+				if (pcol_element != 0 && pcol_element != 1) {
+					temp = normalized_row * pcol_element
+					tableau[i,1:(ncol(tableau) - 1)] = as.integer(tableau[i,1:(ncol(tableau) - 1)]) - temp
+				}
+	
+				i = i + 1
+				if (i > nrow(tableau)) { break }
+	
+			}
+
+			# remove the test ratio column
+			tableau = tableau[,-ncol(tableau)]
+			print(tableau)
+
 		} else {
-			pivot_col_index = pivot_col
+			print("bye")
+			return(tableau)
 		}
-		# print(pivot_col_index)
+		
+	}
 
-		# get the temp values to pick a pivot row
-		sols = tableau[,ncol(tableau)]
-		selected_col = tableau[,pivot_col_index]
-		print("sols: ")
-		print(sols)
-		print("pivot col: ")
-		print(selected_col)
+	is_final_tableau <- function(tableau, last_i) {
+		if (any(tableau[nrow(tableau),] < 0) == TRUE) {
+			last_i = FALSE
+		} else { last_i = TRUE }
 
-		temp_values = vector()
-		i = 1
-		repeat {
-
-			if (selected_col[i] != 0) {
-				temp_values = c(temp_values, (sols[i] / selected_col[i]))
-			} else {
-				temp_values = c(temp_values, NA);
-			}
-
-			if (i == length(selected_col)) { break }
-			i = i + 1
-
-		}
-
-		print("temp values: ")
-		print(temp_values)
-
-		min_tr = min(temp_values[temp_values >= 0], na.rm = TRUE)
-		print(paste("min tr: ", min_tr))
-		pivot_row_index = match(min_tr, temp_values)
-
-		pivot_element = tableau[pivot_row_index, pivot_col_index]
-
-		print("pivot element")
-		print(pivot_element)
-
-		# gauss-jordan!!
-		tableau[pivot_row_index,] = tableau[pivot_row_index,] / pivot_element
-		normalized_row = tableau[pivot_row_index,]
-		print(normalized_row)
-
-		i = 1
-		repeat {
-
-			pcol_element = tableau[i,pivot_col_index]
-
-			if (pcol_element != 0 && pcol_element != 1) {
-				temp = normalized_row * pcol_element
-				tableau[i,] = tableau[i,] - temp
-			}
-
-			i = i + 1
-			if (i > nrow(tableau)) { break }
-
-		}
-
-		print(tableau)
-		return(tableau)
-
+		return(last_i)
 	}
 
 	observeEvent(input$smplx_tableau, {
