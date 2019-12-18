@@ -92,7 +92,8 @@ fluidPage(
 					hr(),
 					h3("Iterations"),
 					tableOutput("smplx_iterated_tab"),
-					h4(htmlOutput("iteration_count"))
+					h4(htmlOutput("iteration_count")),
+					h4(htmlOutput("smplx_final_answer"))
 				)
 			)
 		)

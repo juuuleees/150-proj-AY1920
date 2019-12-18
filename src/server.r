@@ -753,6 +753,7 @@ shinyServer(function(input, output) {
 	iterated_tab <- reactiveValues(data = NULL)
 	iterations <- reactiveValues(data = 0)
 	last_iteration <- reactiveValues(data = FALSE)
+	final_answer <- reactiveValues(data = 0)
 
 	make_tableau <- function(data) {
 		# print(data)
@@ -1008,6 +1009,20 @@ shinyServer(function(input, output) {
 
 	}
 
+	is_it_over <- function(tableau, last_i) {
+		print(tableau[nrow(tableau),])
+		print(all(tableau[nrow(tableau),] >= 0))
+		if ( all(tableau[nrow(tableau),] >= 0) ) {
+			print("should be here")
+			last_i = TRUE
+			return(last_i)
+		} else {
+			print("but am here")
+			last_i = FALSE
+			return(last_i)
+		}
+	}
+
 	observeEvent(input$smplx_tableau, {
 		simplex_data = table_data()
 
@@ -1022,14 +1037,26 @@ shinyServer(function(input, output) {
 
 		} else {
 			print("dumadaan ka ba dito u hoe")
+			last_iteration$data <- is_it_over(iterated_tab$data, last_iteration$data)
 			print(last_iteration$data)
-			iterated_tab$data <- iterate_gjm(iterated_tab$data)
-
+			if (last_iteration$data == FALSE) {
+				iterated_tab$data <- iterate_gjm(iterated_tab$data)
+			} else {					
+				print("STAHP")
+			}
 		}
 	
 		if (last_iteration$data == FALSE) {
 			iterations$data = iterations$data + 1
+		} else {
+			iterations$data = paste(iterations$data, "(final iteration)")
 		}
+
+	})
+
+	observeEvent(input$smplx_final_answer, {
+
+		final_answer$data <- iterated_tab$data[nrow(iterated_tab$data),ncol(iterated_tab$data)]
 
 	})
 
@@ -1052,6 +1079,10 @@ shinyServer(function(input, output) {
 			HTML(paste("Iterations: ", iterations$data))
 		}
 
+	})
+
+	output$smplx_final_answer <- renderText({
+		HTML(paste("Final answer: ", final_answer$data))
 	})
 
 })
