@@ -798,7 +798,7 @@ shinyServer(function(input, output) {
 		# get supply coefficients
 		i = 1
 		repeat {
-			supply1 = c(supply1, data$V1[i])
+			supply1 = c(supply1, 1)
 
 			i = i + 1
 			if (i == length(data$V1)) { break }
@@ -808,7 +808,7 @@ shinyServer(function(input, output) {
 
 		i = 1
 		repeat {
-			supply2 = c(supply2, data$V2[i])
+			supply2 = c(supply2, 1)
 
 			i = i + 1
 			if (i == length(data$V2)) { break }
@@ -818,7 +818,7 @@ shinyServer(function(input, output) {
 
 		i = 1
 		repeat {
-			supply3 = c(supply3, data$V3[i])
+			supply3 = c(supply3, 1)
 
 			i = i + 1
 			if (i == length(data$V3)) { break }
@@ -830,7 +830,7 @@ shinyServer(function(input, output) {
 		i = 1
 		repeat {
 
-			demand1 = c(demand1, data[[i]][1])
+			demand1 = c(demand1, 1)
 
 			if (i == length(data)) { break }
 			i = i + 1
@@ -841,7 +841,7 @@ shinyServer(function(input, output) {
 		i = 1
 		repeat {
 
-			demand2 = c(demand2, data[[i]][2])
+			demand2 = c(demand2, 1)
 
 			if (i == length(data)) { break }
 			i = i + 1
@@ -852,7 +852,7 @@ shinyServer(function(input, output) {
 		i = 1
 		repeat {
 
-			demand3 = c(demand3, data[[i]][3])
+			demand3 = c(demand3, 1)
 
 			if (i == length(data)) { break }
 			i = i + 1
@@ -863,7 +863,7 @@ shinyServer(function(input, output) {
 		i = 1
 		repeat {
 
-			demand4 = c(demand4, data[[i]][4])
+			demand4 = c(demand4, 1)
 
 			if (i == length(data)) { break }
 			i = i + 1
@@ -874,7 +874,7 @@ shinyServer(function(input, output) {
 		i = 1
 		repeat {
 
-			demand5 = c(demand5, data[[i]][5])
+			demand5 = c(demand5, 1)
 
 			if (i == length(data)) { break }
 			i = i + 1
@@ -910,10 +910,39 @@ shinyServer(function(input, output) {
 			tableau = cbind(tableau, test_ratio)
 
 			# choose a pivot column
-			print(tableau[nrow(tableau),])
-			print(min(as.integer(tableau[nrow(tableau),])))
-			pivot_col_index = match(min(as.integer(tableau[nrow(tableau),])), as.integer(tableau[nrow(tableau),]))
-			print(paste("pivot col: ", pivot_col_index))
+			# print(tableau[nrow(tableau),])
+			# print(min(as.integer(tableau[nrow(tableau),])))
+
+			# pivot_col_index = match(min(as.integer(tableau[nrow(tableau),])), as.integer(tableau[nrow(tableau),]))
+			possible_cols = which(as.integer(tableau[nrow(tableau),]) < 0)
+			print(paste("possible cols: ", possible_cols))
+
+			if (length(possible_cols) > 1) {
+
+				i = 1
+				all_the_same = FALSE
+				repeat {
+	
+					if (all( tableau[nrow(tableau),][possible_cols] == tableau[nrow(tableau),][possible_cols[i]] )) {
+						all_the_same = TRUE
+						break
+					} else if (i == length(possible_cols)) { break }
+					i = i + 1
+	
+				}
+				print(paste("all the same cols? :", all_the_same))
+
+				if (all_the_same) {
+					print("all the same!")
+					pivot_col_index = possible_cols[1]
+					print(paste("pivot col: ", pivot_col_index))
+				} else {
+					pivot_col_index = match(min(as.integer(tableau[nrow(tableau),])), as.integer(tableau[nrow(tableau),]))
+				}
+
+			} else {					
+				pivot_col_index = possible_cols
+			}
 			# print(tableau[,pivot_col_index])
 
 			# pick pivot row
@@ -955,10 +984,48 @@ shinyServer(function(input, output) {
 				i = i + 1
 
 			}
-			print(small_indexes)
+			# print(small_indexes)
 
-			pivot_row_index = sample(small_indexes[1:length(small_indexes)], 1)
-			print(paste("(r,s): ", pivot_row_index, pivot_col_index))
+			# pivot_row_index = sample(small_indexes[1:length(small_indexes)], 1)
+			# print(paste("(r,s): ", pivot_row_index, pivot_col_index))
+			i = 1
+			all_the_same = FALSE
+			repeat {
+
+				if (all( tableau[,(ncol(tableau) - 1)][small_indexes] == tableau[,(ncol(tableau) - 1)][small_indexes[i]] )) {
+					all_the_same = TRUE
+					break
+				} else if (i == length(small_indexes)) { break }
+				i = i + 1
+
+			}
+			print(paste("all the same test ratios? : ", all_the_same))
+
+			if (all_the_same) {
+				print("all the same!")
+				pivot_row_index = sample(small_indexes[1:length(small_indexes)], 1)
+				print(paste("(r,s): ", pivot_row_index, pivot_col_index))	
+			} else {
+				print("different!")
+				print(min(as.integer(tableau[,ncol(tableau)]), na.rm = TRUE))
+				possible_indexes = which(tableau[,ncol(tableau)] == min(as.integer(tableau[,ncol(tableau)]), na.rm = TRUE))
+
+				if(length(possible_indexes) > 1) {
+					pivot_row_index = sample(possible_indexes[1:length(possible_indexes)], 1)
+				} else {
+					pivot_row_index = possible_indexes
+				}
+
+				# print(tableau[,ncol(tableau)])
+				# print(tableau[,(ncol(tableau) - 1)])
+				# print(tableau[,pivot_col_index])
+				# pivot_row_index = which(tableau[,pivot_col_index] == a)
+				print(paste("(r,s): ", pivot_row_index, pivot_col_index))	
+			}
+
+			print(pivot_row_index)
+			print(pivot_col_index)
+			print(tableau[pivot_row_index, pivot_col_index])
 
 			# pick the pivot element
 			pivot_element = as.integer(tableau[pivot_row_index, pivot_col_index])
@@ -973,14 +1040,14 @@ shinyServer(function(input, output) {
 			normalized_row = as.integer(tableau[pivot_row_index,1:(ncol(tableau) - 1)])
 
 			# gauss-jordan the pivot column
+			gj_rows = logical(nrow(tableau))
 			i = 1
 			repeat {
 	
-				pcol_element = as.integer(tableau[i,pivot_col_index])
-	
-				if (pcol_element != 0 && pcol_element != 1) {
-					temp = normalized_row * pcol_element
+				if (gj_rows[i] == FALSE && i != pivot_row_index) {
+					temp = normalized_row * as.integer(tableau[,pivot_col_index][i])
 					tableau[i,1:(ncol(tableau) - 1)] = as.integer(tableau[i,1:(ncol(tableau) - 1)]) - temp
+					gj_rows[i] = TRUE
 				}
 	
 				i = i + 1
